@@ -1,0 +1,8 @@
+.idea
+
+/data/*
+!/data/middleware.yml
+!/data/traefik.yml
+
+/.env
+!/.env.dist

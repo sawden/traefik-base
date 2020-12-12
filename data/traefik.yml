@@ -1,0 +1,33 @@
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false
+
+api:
+  dashboard: true
+  debug: false
+  insecure: false
+
+log:
+  level: DEBUG
+  filePath: "/traefik.log"
+
+entryPoints:
+  web:
+    address: ":80"
+  web-secure:
+    address: ":443"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    network: traefik
+    exposedByDefault: false
+  file:
+    filename: /middleware.yml
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: example@email.com
+      storage: acme.json
+      tlsChallenge: {}
