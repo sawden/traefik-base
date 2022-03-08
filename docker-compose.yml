@@ -1,37 +1,57 @@
 version: '3'
-networks:
-  traefik:
-    external: true
 services:
   traefik:
     image: traefik:latest
+    depends_on:
+      - "docker-socket-proxy"
     restart: always
+    security_opt:
+      - no-new-privileges:true
     container_name: traefik
     networks:
       - traefik
+      - docker-socket-proxy
     ports:
       - 80:80
       - 443:443
     env_file:
       - .env
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./data/traefik.yml:/traefik.yml:ro
-      - ./data/middleware.yml:/middleware.yml:ro
-      - ./data/.htpasswd:/.htpasswd:ro
+      - ./data/middlewares:/middlewares
       - ./data/acme.json:/acme.json
-      - /var/log/traefik.log:/traefik.log
+      - ./data/logs:/logs
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.entrypoints=web"
       - "traefik.http.routers.traefik.rule=Host(`${HOSTNAME}`)"
+      - "traefik.http.routers.traefik.tls.certresolver=cloudflare"
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.tls.domains[0].main=${DOMAIN}"
+      - "traefik.http.routers.traefik.tls.domains[0].sans=*.${DOMAIN}"
       - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.middlewares.traefik-auth.basicauth.usersfile=.htpasswd"
-      - "traefik.http.routers.traefik.middlewares=https-redirect@file"
-      - "traefik.http.routers.traefik-https.entrypoints=web-secure"
-      - "traefik.http.routers.traefik-https.rule=Host(`${HOSTNAME}`)"
-      - "traefik.http.routers.traefik-https.middlewares=traefik-auth"
-      - "traefik.http.routers.traefik-https.tls=true"
-      - "traefik.http.routers.traefik-https.tls.options=tls-options@file"
-      - "traefik.http.routers.traefik-https.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.traefik-https.service=api@internal"
+      # Use 'chain-no-auth@file' middleware to disable authelia
+      - "traefik.http.routers.traefik.middlewares=chain-auth@file"
+
+  # Docker Socket Proxy
+  docker-socket-proxy:
+    image: tecnativa/docker-socket-proxy
+    userns_mode: host
+    security_opt:
+      - no-new-privileges:true
+    restart: always
+    container_name: docker-socket-proxy
+    networks:
+      - docker-socket-proxy
+    ports:
+      - 2375
+    environment:
+      CONTAINERS: 1
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+networks:
+  traefik:
+    name: traefik
+    driver: bridge
+  docker-socket-proxy:
+    name: docker-socket-proxy
+    driver: bridge

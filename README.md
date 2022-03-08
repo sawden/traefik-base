@@ -1,13 +1,18 @@
 <div align="center">
-    <a href="https://traefik.folibon.de">
-        <img height="70" src="./logo.png" />
-    </a>
+    <img height="70" src="./logo.png" />
     <br />
     <br />
     <strong>Traefik dockerized Reverse-Proxy and Let’s Encrypt Provider Setup</strong>
     <br />
     <br />
 </div>
+
+---
+**IMPORTANT**
+
+This guide assumes that docker uses the user and group 'traefik' through userns-remap.
+
+---
 
 ## Install Dependencies
 
@@ -20,12 +25,6 @@ apt-get install git
 #### 📦 Docker & Docker Compose
 Instructions [here](https://docs.docker.com/compose/install/)
 
-#### 📦 htpasswd
-```bash
-apt-get update
-apt-get install apache2-utils
-```
-
 ## Clone this Project
 ```bash
 git clone https://github.com/sawden/traefik-base.git /opt/containers/traefik
@@ -33,23 +32,28 @@ git clone https://github.com/sawden/traefik-base.git /opt/containers/traefik
 
 ## Config and start traefik
 ```bash
-# Create the log file
+# Create the log files
 touch /var/log/traefik.log
-# Create a htpasswd user (named traefik) and enter a password of your choice
-htpasswd -c /opt/containers/traefik/data/.htpasswd traefik
+touch /var/log/access.log
 # Replace 'example@email.com' with your email
 nano /opt/containers/traefik/data/traefik.yml
 # Make sure traefik has the correct access rights on 'acme.json'
+echo "{}" > "/opt/containers/traefik/data/acme.json"
 chmod 600 /opt/containers/traefik/data/acme.json
+# Replace 'auth.example.com' with your authelia domain
+nano /opt/containers/traefik/data/middlewares/authelia.yml
 # Copy the sample env
 cp /opt/containers/traefik/.env.dist /opt/containers/traefik/.env
 # Edit the env
 nano /opt/containers/traefik/.env
-# Create the Docker network
-docker network create traefik
+# Change the permissions of the 'data' folder to the docker remap user
+sudo chown -R traefik:traefik /opt/containers/authelia/data
 # Start 🚀 the container
 docker-compose up -d
 ```
+
+By default, [authelia](https://github.com/sawden/traefik-authelia) is enabled to protect the dashboard.
+To disable Authelia simply replace the `chain-auth@file` middleware with `chain-no-auth@file` in the docker-compose.yml.
 
 ## Documentation and Inspiration
 <strong>See the documentation [here](https://doc.traefik.io/traefik/) and a 

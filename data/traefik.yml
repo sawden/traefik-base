@@ -8,22 +8,41 @@ api:
   insecure: false
 
 log:
-  level: DEBUG
-  filePath: "/traefik.log"
+  level: WARN
+  filePath: "/logs/traefik.log"
+  format: json
+
+accessLog:
+  filePath: "/logs/access.log"
+  format: json
 
 entryPoints:
   web:
     address: ":80"
-  web-secure:
+  websecure:
     address: ":443"
+
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      cipherSuites:
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384   # TLS 1.2
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305    # TLS 1.2
+        - TLS_AES_256_GCM_SHA384                  # TLS 1.3
+        - TLS_CHACHA20_POLY1305_SHA256            # TLS 1.3
+      curvePreferences:
+        - CurveP521
+        - CurveP384
+      sniStrict: true
 
 providers:
   docker:
-    endpoint: "unix:///var/run/docker.sock"
+    endpoint: "tcp://docker-socket-proxy:2375"
     network: traefik
     exposedByDefault: false
   file:
-    filename: /middleware.yml
+    directory: /middlewares/
 
 certificatesResolvers:
   letsencrypt:
@@ -31,3 +50,21 @@ certificatesResolvers:
       email: example@email.com
       storage: acme.json
       tlsChallenge: {}
+      httpChallenge:
+        entryPoint: web
+  netcup:
+    acme:
+      email: example@email.com
+      storage: acme.json
+      dnsChallenge:
+        provider: netcup
+        delayBeforeCheck: 900
+        resolvers:
+          - "root-dns.netcup.net"
+          - "second-dns.netcup.net"
+  cloudflare:
+    acme:
+      email: example@email.com
+      storage: acme.json
+      dnsChallenge:
+        provider: cloudflare

@@ -1,0 +1,35 @@
+http:
+  middlewares:
+    chain-no-auth:
+      chain:
+        middlewares:
+          - rate-limit
+          - https-redirect-scheme
+          - secure-headers
+          - compress
+
+    chain-auth:
+      chain:
+        middlewares:
+          - rate-limit
+          - https-redirect-scheme
+          - secure-headers
+          - authelia
+          - compress
+
+    chain-no-auth-shopware:
+      chain:
+        middlewares:
+          - rate-limit
+          - https-redirect-scheme
+          - secure-headers-shopware
+          - compress
+
+    chain-auth-shopware:
+      chain:
+        middlewares:
+          - rate-limit
+          - https-redirect-scheme
+          - secure-headers-shopware
+          - authelia
+          - compress

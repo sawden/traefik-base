@@ -1,7 +1,7 @@
 .idea
 
-/data/*
-!/data/middleware.yml
+/data
+!/data/middlewares/*
 !/data/traefik.yml
 
 /.env
