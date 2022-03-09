@@ -10,7 +10,7 @@
 ---
 **IMPORTANT**
 
-This guide assumes that docker uses the user and group 'traefik' through userns-remap.
+This guide assumes that docker uses the user and group 'traefik' through [userns-remap](https://docs.docker.com/engine/security/userns-remap/#enable-userns-remap-on-the-daemon).
 
 ---
 
@@ -32,6 +32,17 @@ git clone https://github.com/sawden/traefik-base.git /opt/containers/traefik
 
 ## Config and start traefik
 ```bash
+# Create a 'secrets' folder.
+mkdir /opt/containers/traefik/secrets/
+# Create all required secrets.
+echo "YOUR_CLOUDFLARE_API_EMAIL" > "/opt/containers/traefik/secrets/cloudflare_api_email"
+echo "YOUR_CLOUDFLARE_API_KEY" > "/opt/containers/traefik/secrets/cloudflare_api_key"
+echo "YOUR_NETCUP_CUSTOMER_NUMBER" > "/opt/containers/traefik/secrets/netcup_customer_number"
+echo "YOUR_NETCUP_API_KEY" > "/opt/containers/traefik/secrets/netcup_api_key"
+echo "YOUR_NETCUP_API_PASSWORD" > "/opt/containers/traefik/secrets/netcup_api_password"
+# Change the 'secrets' owner and permissions
+sudo chmod -R 600 /opt/containers/traefik/secrets/
+sudo chown -R traefik:traefik /opt/containers/traefik/secrets/
 # Create the log files
 touch /var/log/traefik.log
 touch /var/log/access.log

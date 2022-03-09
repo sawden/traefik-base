@@ -1,4 +1,4 @@
-version: '3'
+version: '3.9'
 services:
   traefik:
     image: traefik:latest
@@ -16,6 +16,18 @@ services:
       - 443:443
     env_file:
       - .env
+    environment:
+      - CF_API_EMAIL_FILE=/run/secrets/cloudflare_api_email
+      - CF_API_KEY_FILE=/run/secrets/cloudflare_api_key
+      - NETCUP_CUSTOMER_NUMBER_FILE=/run/secrets/netcup_customer_number
+      - NETCUP_API_KEY_FILE=/run/secrets/netcup_api_key
+      - NETCUP_API_PASSWORD_FILE=/run/secrets/netcup_api_password
+    secrets:
+      - cloudflare_api_email
+      - cloudflare_api_key
+      - netcup_customer_number
+      - netcup_api_key
+      - netcup_api_password
     volumes:
       - ./data/traefik.yml:/traefik.yml:ro
       - ./data/middlewares:/middlewares
@@ -55,3 +67,14 @@ networks:
   docker-socket-proxy:
     name: docker-socket-proxy
     driver: bridge
+secrets:
+  cloudflare_api_email:
+    file: ./secrets/cloudflare_api_email
+  cloudflare_api_key:
+    file: ./secrets/cloudflare_api_key
+  netcup_customer_number:
+    file: ./secrets/netcup_customer_number
+  netcup_api_key:
+    file: ./secrets/netcup_api_key
+  netcup_api_password:
+    file: ./secrets/netcup_api_password
